@@ -5,47 +5,84 @@ data:
     distributor: {}
     http_api_prefix: ""
     overrides:
-        per_tenant_override_config: /overrides/overrides.yaml
+      per_tenant_override_config: /overrides/overrides.yaml
     server:
-        http_listen_port: 3200
+      http_listen_port: 3200
     ingester:
-        lifecycler:
-            ring:
-                replication_factor: 3
-    memberlist:
-        abort_if_cluster_join_fails: false
-        bind_port: 7946
-        join_members:
-            - gossip-ring.tracing.svc.cluster.local.:7946
+      lifecycler:
+        ring:
+          kvstore:
+            store: etcd
+            prefix: collectors/
+            etcd:
+              endpoints: []
+              dial_timeout: 10s
+              max_retries: 10
+              tls_enabled: false
+              tls_cert_path: ""
+              tls_key_path: ""
+              tls_ca_path: ""
+              tls_server_name: ""
+              tls_insecure_skip_verify: false
+              tls_cipher_suites: ""
+              tls_min_version: ""
+              username: ""
+              password: ""
+          heartbeat_timeout: 5m0s
+          replication_factor: 3
+          zone_awareness_enabled: false
+          excluded_zones: ""
+        num_tokens: 128
+        heartbeat_period: 5s
+        heartbeat_timeout: 1m0s
+        observe_period: 0s
+        join_after: 0s
+        min_ready_duration: 15s
+        final_sleep: 0s
+        tokens_file_path: ""
+        availability_zone: ""
+        unregister_on_shutdown: true
+        readiness_check_ring_health: true
+        address: 127.0.0.1
+        port: 0
+        id: classin-tempo
+      concurrent_flushes: 4
+      flush_check_period: 10s
+      flush_op_timeout: 5m0s
+      trace_idle_period: 10s
+      max_block_duration: 30m0s
+      max_block_bytes: 524288000
+      complete_block_timeout: 15m0s
+      override_ring_key: ring
     storage:
-        trace:
-            backend: s3
-            blocklist_poll: 5m
-            cache: memcached
-            memcached:
-                consistent_hash: true
-                host: memcached
-                service: memcached-client
-                timeout: 200ms
-            pool:
-                queue_depth: 2000
-            s3:
-                bucket: tempo
-                endpoint: s3.xxxx.amazoneaws.com
-                insecure: false
-                access_key:
-                secret_key:
-                tags:
-                    app: tempo
-            wal:
-                path: /var/tempo/wal
-            pool:
-                max_workers: 500
-                queue_depth: 20000
-            block:
-                # gzip, lz4-64k, lz4-256k, lz4-1M, lz4, snappy, zstd, s2
-                v2_encoding: zstd
-                search_encoding: snappy
+      trace:
+        backend: s3
+        blocklist_poll: 5m
+        cache: memcached
+        memcached:
+          consistent_hash: true
+          host: memcached
+          service: memcached-client
+          timeout: 200ms
+        pool:
+          queue_depth: 2000
+        s3:
+          bucket: tempo
+          endpoint: s3.xxxx.amazoneaws.com
+          insecure: false
+          access_key:
+          secret_key:
+          tags:
+            app: tempo
+        wal:
+          path: /var/tempo/wal
+        pool:
+          max_workers: 500
+          queue_depth: 20000
+        block:
+          # gzip, lz4-64k, lz4-256k, lz4-1M, lz4, snappy, zstd, s2
+          v2_encoding: zstd
+          search_encoding: snappy
 kind: ConfigMap
 metadata:
   name: tempo-ingester

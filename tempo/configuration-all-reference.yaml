@@ -46,7 +46,7 @@ server:
 distributor:
   ring:
     kvstore:
-      store: memberlist
+      store: etcd
       prefix: collectors/
       consul:
         host: localhost:8500

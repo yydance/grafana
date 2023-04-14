@@ -11,7 +11,49 @@ data:
     ingester:
       lifecycler:
         ring:
+          kvstore:
+            store: etcd
+            prefix: collectors/
+            etcd:
+              endpoints: []
+              dial_timeout: 10s
+              max_retries: 10
+              tls_enabled: false
+              tls_cert_path: ""
+              tls_key_path: ""
+              tls_ca_path: ""
+              tls_server_name: ""
+              tls_insecure_skip_verify: false
+              tls_cipher_suites: ""
+              tls_min_version: ""
+              username: ""
+              password: ""
+          heartbeat_timeout: 5m0s
           replication_factor: 3
+          zone_awareness_enabled: false
+          excluded_zones: ""
+        num_tokens: 128
+        heartbeat_period: 5s
+        heartbeat_timeout: 1m0s
+        observe_period: 0s
+        join_after: 0s
+        min_ready_duration: 15s
+        final_sleep: 0s
+        tokens_file_path: ""
+        availability_zone: ""
+        unregister_on_shutdown: true
+        readiness_check_ring_health: true
+        address: 127.0.0.1
+        port: 0
+        id: classin-tempo
+      concurrent_flushes: 4
+      flush_check_period: 10s
+      flush_op_timeout: 5m0s
+      trace_idle_period: 10s
+      max_block_duration: 30m0s
+      max_block_bytes: 524288000
+      complete_block_timeout: 15m0s
+      override_ring_key: ring
     metrics_generator:
       ring:
         kvstore:
@@ -25,7 +67,7 @@ data:
             password: ""
           heartbeat_period: 5s
           heartbeat_timeout: 1m0s
-          instance_id: tempo-metrics-g1
+          instance_id: classin-tempo
           processor:
             service_graphs:
               wait: 10s
