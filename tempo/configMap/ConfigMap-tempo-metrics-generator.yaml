@@ -1,0 +1,114 @@
+apiVersion: v1
+data:
+  tempo.yaml: |
+    compactor: {}
+    distributor: {}
+    http_api_prefix: ""
+    overrides:
+      per_tenant_override_config: /overrides/overrides.yaml
+    server:
+      http_listen_port: 3200
+    ingester:
+      lifecycler:
+        ring:
+          replication_factor: 3
+    metrics_generator:
+      ring:
+        kvstore:
+          store: etcd
+          prefix: collectors/
+          etcd:
+            endpoints: []
+            dial_timeout: 10s
+            max_retries: 5
+            username: ""
+            password: ""
+          heartbeat_period: 5s
+          heartbeat_timeout: 1m0s
+          instance_id: tempo-metrics-g1
+          processor:
+            service_graphs:
+              wait: 10s
+                max_items: 10000
+                workers: 10
+                histogram_buckets:
+                  - 0.1
+                  - 0.2
+                  - 0.4
+                  - 0.8
+                  - 1.6
+                  - 3.2
+                  - 6.4
+                  - 12.8
+                dimensions:
+                  - tempo-eeo
+                  - tempo-classin
+            span_metrics:
+              histogram_buckets:
+                - 0.002
+                - 0.004
+                - 0.008
+                - 0.016
+                - 0.032
+                - 0.064
+                - 0.128
+                - 0.256
+                - 0.512
+                - 1.024
+                - 2.048
+                - 4.096
+                - 8.192
+                - 16.384
+              intrinsic_dimensions:
+                service: true
+                span_name: true
+                span_kind: true
+                status_code: true
+                status_message: false
+              dimensions:
+                - tempo-eeo
+                - tempo-classin
+      registry:
+        external_labels:
+          source: tempo
+          cluster: eeo-linux-microservices
+      storage:
+        path: /var/tempo/generator_wal
+        remote_write:
+        - url: http://xxxx:9090/api/v1/write
+          send_examplars: true
+          name: tempo-metric
+        
+    storage:
+      trace:
+        backend: s3
+        blocklist_poll: 5m
+        cache: memcached
+        memcached:
+          consistent_hash: true
+          host: memcached
+          service: memcached-client
+          timeout: 200ms
+        pool:
+          queue_depth: 2000
+        s3:
+          bucket: tempo
+          endpoint: s3.xxxx.amazoneaws.com
+          insecure: false
+          access_key:
+          secret_key:
+          tags:
+            app: tempo
+        wal:
+          path: /var/tempo/wal
+        pool:
+          max_workers: 500
+          queue_depth: 20000
+        block:
+          # gzip, lz4-64k, lz4-256k, lz4-1M, lz4, snappy, zstd, s2
+          v2_encoding: zstd
+          search_encoding: snappy
+kind: ConfigMap
+metadata:
+  name: tempo-metrics-generator
+  namespace: tracing

@@ -1,0 +1,58 @@
+apiVersion: v1
+data:
+  tempo.yaml: |
+    distributor: {}
+    http_api_prefix: ""
+    overrides:
+        per_tenant_override_config: /overrides/overrides.yaml
+    server:
+        http_listen_port: 3200
+    compactor:
+        compaction:
+            block_retention: 144h
+            v2_in_buffer_bytes: 1.048576e+07
+        ring:
+            kvstore:
+                store: memberlist
+    ingester:
+        lifecycler:
+            ring:
+                replication_factor: 3
+    memberlist:
+        abort_if_cluster_join_fails: false
+        bind_port: 7946
+        join_members:
+            - gossip-ring.tracing.svc.cluster.local.:7946
+    storage:
+        trace:
+            backend: s3
+            blocklist_poll: 5m
+            cache: memcached
+            memcached:
+                consistent_hash: true
+                host: memcached
+                service: memcached-client
+                timeout: 200ms
+            pool:
+                queue_depth: 2000
+            s3:
+                bucket: tempo
+                endpoint: s3.xxxx.amazoneaws.com
+                insecure: false
+                access_key:
+                secret_key:
+                tags:
+                    app: tempo
+            wal:
+                path: /var/tempo/wal
+            pool:
+                max_workers: 500
+                queue_depth: 20000
+            block:
+                # gzip, lz4-64k, lz4-256k, lz4-1M, lz4, snappy, zstd, s2
+                v2_encoding: zstd
+                search_encoding: snappy
+kind: ConfigMap
+metadata:
+  name: tempo-compactor
+  namespace: tracing
